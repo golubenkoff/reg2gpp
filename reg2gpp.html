@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="uk"> <!-- Setting the initial language for the lang attribute -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title will be set dynamically -->
+    <title>Reg2GPP</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <!-- Font Awesome (if icons are needed) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            position: relative;
+            /* For positioning the switcher */
+        }
+
+        #optionsSection label.form-label {
+            /* Removed font-weight to avoid overriding Bootstrap */
+            /* font-weight: 500; */
+        }
+
+        #statusArea .alert {
+            margin-top: 1rem;
+        }
+
+        /* Style for input file */
+        .inputfile {
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+
+        .inputfile+label {
+            max-width: 80%;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            display: inline-block;
+            overflow: hidden;
+            padding: 0.625rem 1.25rem;
+            color: #0d6efd;
+            border: 1px solid #0d6efd;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .inputfile:focus+label,
+        .inputfile.has-focus+label,
+        .inputfile+label:hover {
+            background-color: #eef5ff;
+        }
+
+        .inputfile+label span {
+            vertical-align: middle;
+        }
+
+        #fileInfo {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Styles for language switcher */
+        #lang-switcher {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #lang-switcher button {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            /* Flag emoji size */
+            padding: 0 5px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        #lang-switcher button:hover {
+            opacity: 1;
+        }
+
+        #lang-switcher button.active {
+            opacity: 1;
+            cursor: default;
+        }
+
+        #lang-switcher button:not(.active):hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Language switcher -->
+    <div id="lang-switcher">
+
+        <button id="lang-uk" data-lang="uk">
+            <svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-ua" viewBox="0 0 640 480">
+                <g fill-rule="evenodd" stroke-width="1pt">
+                    <path fill="gold" d="M0 0h640v480H0z" />
+                    <path fill="#0057b8" d="M0 0h640v240H0z" />
+                </g>
+            </svg>
+            🇺🇦</button>
+        <button id="lang-en" data-lang="en">
+            <svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-gb" viewBox="0 0 640 480">
+                <path fill="#012169" d="M0 0h640v480H0z" />
+                <path fill="#FFF"
+                    d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0z" />
+                <path fill="#C8102E"
+                    d="m424 281 216 159v40L369 281zm-184 20 6 35L54 480H0zM640 0v3L391 191l2-44L590 0zM0 0l239 176h-60L0 42z" />
+                <path fill="#FFF" d="M241 0v480h160V0zM0 160v160h640V160z" />
+                <path fill="#C8102E" d="M0 193v96h640v-96zM273 0v480h96V0z" />
+            </svg>
+            🇬🇧</button>
+    </div>
+
+    <div class="container">
+        <h1 data-i18n-key="header1">Reg2GPP</h1>
+        <h2 data-i18n-key="header2">Конвертер Registry (.reg) в Group Policy Preferences XML</h2>
+        <p data-i18n-key="description">Цей інструмент конвертує файли реєстру Windows (*.reg) у формат XML, що
+            використовується Group Policy Preferences (GPP). Це дозволяє імпортувати налаштування реєстру через групові
+            політики Active Directory.</p>
+        <p><strong data-i18n-key="usageTitle">Як використовувати:</strong></p>
+        <ol>
+            <li data-i18n-key="usageStep1">Натисніть "Виберіть файл..." і вкажіть ваш `.reg` файл.</li>
+            <li data-i18n-key="usageStep2">Якщо файл коректний, з'являться опції конвертації. Задайте ім'я колекції та
+                виберіть потрібні параметри.</li>
+            <li data-i18n-key="usageStep3">Натисніть "Конвертувати та завантажити XML". Браузер запропонує зберегти
+                згенерований `.xml` файл.</li>
+            <li data-i18n-key="usageStep4">Скопіюйте завантажений XML-файл (Ctrl+C) та вставте його (Ctrl+V або ПКМ ->
+                Вставити) в редакторі керування груповими політиками в розділ `Конфігурація комп'ютера (або користувача)
+                -> Налаштування -> Конфігурація Windows -> Реєстр`.</li>
+        </ol>
+
+        <hr>
+
+        <!-- File upload form -->
+        <div class="mb-3">
+            <input type="file" name="file" id="regFile" class="inputfile" accept=".reg" />
+            <label for="regFile">
+                <i class="fas fa-upload"></i>
+                <span data-i18n-key="selectFileLabel">Виберіть файл…</span>
+            </label>
+            <div id="fileInfo" data-i18n-key="fileInfoDefault">Файл не обрано.</div>
+        </div>
+
+        <!-- Options section (initially hidden) -->
+        <div id="optionsSection" class="mt-4 p-3 border rounded bg-light d-none">
+            <h4 data-i18n-key="optionsTitle">Опції конвертації</h4>
+            <form id="optionsForm">
+                <div class="mb-3">
+                    <label for="collectionName" class="form-label" data-i18n-key="collectionNameLabel">Ім'я
+                        колекції:</label>
+                    <input type="text" class="form-control" id="collectionName" name="collection" size="30" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" data-i18n-key="defaultActionLabel">Дія за замовчуванням:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="action" id="actionC" value="C">
+                        <label class="form-check-label" for="actionC" data-i18n-key="actionCreate">Створити
+                            (Create)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="action" id="actionR" value="R">
+                        <label class="form-check-label" for="actionR" data-i18n-key="actionReplace">Замінити
+                            (Replace)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="action" id="actionU" value="U" checked>
+                        <label class="form-check-label" for="actionU" data-i18n-key="actionUpdate">Оновити
+                            (Update)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="action" id="actionD" value="D">
+                        <label class="form-check-label" for="actionD" data-i18n-key="actionDelete">Видалити
+                            (Delete)</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" data-i18n-key="commonOptionsLabel">Загальні опції:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="stoponError" value="1" id="stoponError">
+                        <label class="form-check-label" for="stoponError" data-i18n-key="optionStopOnError">Зупинити
+                            обробку при помилці</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="userContext" value="1" id="userContext">
+                        <label class="form-check-label" for="userContext" data-i18n-key="optionUserContext">Виконувати в
+                            контексті безпеки поточного користувача</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="removePolicy" value="1" id="removePolicy">
+                        <label class="form-check-label" for="removePolicy" data-i18n-key="optionRemovePolicy">Видалити
+                            елемент, якщо політика більше не застосовується</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="applyOnce" value="1" id="applyOnce">
+                        <label class="form-check-label" for="applyOnce" data-i18n-key="optionApplyOnce">Застосувати один
+                            раз і не застосовувати повторно</label>
+                    </div>
+                </div>
+
+                <button type="button" id="convertButton" class="btn btn-primary"
+                    data-i18n-key="convertButton">Конвертувати та завантажити XML</button>
+            </form>
+        </div>
+
+        <!-- Area for displaying status/errors -->
+        <div id="statusArea" class="mt-3"></div>
+
+        <hr>
+        <footer class="text-muted small">
+            <span data-i18n-key="footerText">Author: Andrew V. Golubenkoff
+                Powered by:
+                ☕ ~1 bucket of coffee
+                🤬 ~42 emotional outbursts
+                🧠 AI v1.0, v2.5, and that third one that always breaks things
+            </span>
+            <!-- Example of using hide_email (if needed) -->
+            <!-- Contacts: <span id="contact-email">[javascript protected email address]</span> -->
+        </footer>
+
+    </div> <!-- /container -->
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+
+    <!-- Main converter script -->
+    <script>
+        // --- Dictionaries for localization ---
+        const dictionaries = {
+            uk: {
+                pageTitle: "Reg2GPP - Конвертер .reg в GPP XML",
+                header1: "Reg2GPP",
+                header2: "Конвертер Registry (.reg) в Group Policy Preferences XML",
+                description: "Цей інструмент конвертує файли реєстру Windows (*.reg) у формат XML, що використовується Group Policy Preferences (GPP). Це дозволяє імпортувати налаштування реєстру через групові політики Active Directory.",
+                usageTitle: "Як використовувати:",
+                usageStep1: "Натисніть \"Виберіть файл...\" і вкажіть ваш `.reg` файл.",
+                usageStep2: "Якщо файл коректний, з'являться опції конвертації. Задайте ім'я колекції та виберіть потрібні параметри.",
+                usageStep3: "Натисніть \"Конвертувати та завантажити XML\". Браузер запропонує зберегти згенерований `.xml` файл.",
+                usageStep4: "Скопіюйте завантажений XML-файл (Ctrl+C) та вставте його (Ctrl+V або ПКМ -> Вставити) в редакторі керування груповими політиками в розділ `Конфігурація комп'ютера (або користувача) -> Налаштування -> Конфігурація Windows -> Реєстр`.",
+                selectFileLabel: "Виберіть файл…",
+                fileInfoDefault: "Файл не обрано.",
+                fileInfoSelected: "Вибраний файл: {filename} ({filesize} KB)",
+                fileInfoWrongFile: "Вибрано невірний файл: {filename}",
+                fileInfoErrorHeader: "Помилка у файлі: {filename}",
+                fileInfoErrorRead: "Помилка читання файлу: {filename}",
+                optionsTitle: "Опції конвертації",
+                collectionNameLabel: "Ім'я колекції:",
+                defaultActionLabel: "Дія за замовчуванням:",
+                actionCreate: "Створити (Create)",
+                actionReplace: "Замінити (Replace)",
+                actionUpdate: "Оновити (Update)",
+                actionDelete: "Видалити (Delete)",
+                commonOptionsLabel: "Загальні опції:",
+                optionStopOnError: "Зупинити обробку при помилці",
+                optionUserContext: "Виконувати в контексті безпеки поточного користувача",
+                optionRemovePolicy: "Видалити елемент, якщо політика більше не застосовується",
+                optionApplyOnce: "Застосувати один раз і не застосовувати повторно",
+                convertButton: "Конвертувати та завантажити XML",
+                footerText: "Створено: Андрій Голубенков<br>Працює на:☕ ~1 відрі кави,🤬 ~42 емоційних вибухах,🧠 AІ версії 1.0, 2.5 і тому третьому, що завжди все ламає",
+                statusGenerating: "Генерація XML...",
+                statusGenerated: "XML успішно згенеровано. Починається завантаження...",
+                statusErrorGeneric: "Сталася помилка під час генерації XML. Подробиці в консолі.",
+                statusErrorChooseFile: "Спочатку виберіть коректний .reg файл.",
+                statusErrorCollectionName: "Будь ласка, введіть ім'я колекції.",
+                statusWarningSelectReg: "Будь ласка, виберіть файл з розширенням .reg",
+                statusErrorInvalidReg: "<strong>Помилка:</strong> Файл не є коректним REG-файлом (відсутній заголовок \"Windows Registry Editor Version 5.00\").",
+                statusErrorReadFile: "Помилка читання файлу: {error}",
+                // New statuses for parsing
+                parsingErrorValueLine: "Не вдалося розібрати рядок значення: {line}",
+                parsingWarningUnrecognizedValue: "Нерозпізнаний формат значення: {value} у рядку: {line}",
+                parsingWarningUnrecognizedLine: "Пропуск нерозпізнаного рядка: {line}",
+                parsingErrorHexFormat: "Нерозпізнаний hex формат: {value}"
+            },
+            en: {
+                pageTitle: "Reg2GPP - .reg to GPP XML Converter",
+                header1: "Reg2GPP",
+                header2: "Registry (.reg) to Group Policy Preferences XML Converter",
+                description: "This tool converts Windows registry files (*.reg) into the XML format used by Group Policy Preferences (GPP). This allows importing registry settings via Active Directory Group Policies.",
+                usageTitle: "How to use:",
+                usageStep1: "Click \"Choose a file...\" and select your `.reg` file.",
+                usageStep2: "If the file is valid, conversion options will appear. Set the collection name and choose the desired parameters.",
+                usageStep3: "Click \"Convert and Download XML\". The browser will prompt you to save the generated `.xml` file.",
+                usageStep4: "Copy the downloaded XML file (Ctrl+C) and paste it (Ctrl+V or Right-click -> Paste) into the Group Policy Management Editor under `Computer/User Configuration -> Preferences -> Windows Settings -> Registry`.",
+                selectFileLabel: "Choose a file…",
+                fileInfoDefault: "No file selected.",
+                fileInfoSelected: "Selected file: {filename} ({filesize} KB)",
+                fileInfoWrongFile: "Incorrect file selected: {filename}",
+                fileInfoErrorHeader: "Error in file: {filename}",
+                fileInfoErrorRead: "Error reading file: {filename}",
+                optionsTitle: "Conversion Options",
+                collectionNameLabel: "Collection Name:",
+                defaultActionLabel: "Default Action:",
+                actionCreate: "Create",
+                actionReplace: "Replace",
+                actionUpdate: "Update",
+                actionDelete: "Delete",
+                commonOptionsLabel: "Common Options:",
+                optionStopOnError: "Stop processing items if an error occurs",
+                optionUserContext: "Run in logged-on user's security context",
+                optionRemovePolicy: "Remove item when it is no longer applied",
+                optionApplyOnce: "Apply once and do not reapply",
+                convertButton: "Convert and Download XML",
+                footerText: "Author: Andrew V. Golubenkoff<br> Powered by:☕ ~1 bucket of coffee,🤬 ~42 emotional outbursts,🧠 AI v1.0,v2.5, and that third one that always breaks things",
+                statusGenerating: "Generating XML...",
+                statusGenerated: "XML successfully generated. Download starting...",
+                statusErrorGeneric: "An error occurred during XML generation. See console for details.",
+                statusErrorChooseFile: "Please select a valid .reg file first.",
+                statusErrorCollectionName: "Please enter a collection name.",
+                statusWarningSelectReg: "Please select a file with the .reg extension",
+                statusErrorInvalidReg: "<strong>Error:</strong> The file is not a valid REG file (missing \"Windows Registry Editor Version 5.00\" header).",
+                statusErrorReadFile: "Error reading file: {error}",
+                // New statuses for parsing
+                parsingErrorValueLine: "Could not parse value line: {line}",
+                parsingWarningUnrecognizedValue: "Unrecognized value format: {value} in line: {line}",
+                parsingWarningUnrecognizedLine: "Skipping unrecognized line: {line}",
+                parsingErrorHexFormat: "Unrecognized hex format: {value}"
+            }
+        };
+
+        // --- Global variables and DOM elements ---
+        const fileInput = document.getElementById('regFile');
+        const fileInfoDiv = document.getElementById('fileInfo');
+        const optionsSection = document.getElementById('optionsSection');
+        const optionsForm = document.getElementById('optionsForm');
+        const collectionNameInput = document.getElementById('collectionName');
+        const removePolicyCheckbox = document.getElementById('removePolicy');
+        const applyOnceCheckbox = document.getElementById('applyOnce');
+        const actionRadios = optionsForm.elements['action'];
+        const convertButton = document.getElementById('convertButton');
+        const statusArea = document.getElementById('statusArea');
+        const fileInputLabelSpan = document.querySelector('label[for="regFile"] span'); // Span inside label
+        const langSwitcher = document.getElementById('lang-switcher');
+
+        let regFileContent = null;
+        let currentFilename = '';
+        // Determine the current language (default 'uk', taken from localStorage if available)
+        let currentLang = localStorage.getItem('reg2gppLang') || 'uk';
+
+        // --- Localization functions ---
+
+        // Get translated string
+        function t(key, replacements = {}) {
+            const dictionary = dictionaries[currentLang] || dictionaries.uk; // Fallback to uk
+            let text = dictionary[key] || key; // Fallback to key name if not found
+
+            // Replacing placeholders like {placeholder}
+            for (const placeholder in replacements) {
+                text = text.replace(`{${placeholder}}`, replacements[placeholder]);
+            }
+            return text;
+        }
+
+        // Update all texts on the page
+        function updateTexts() {
+            // Set language for <html>
+            document.documentElement.lang = currentLang;
+            // Set page title
+            document.title = t('pageTitle');
+
+            // Update all elements with the data-i18n-key attribute
+            document.querySelectorAll('[data-i18n-key]').forEach(element => {
+                const key = element.getAttribute('data-i18n-key');
+                // Handle different elements differently
+                if (element.id === 'fileInfo' && !regFileContent) {
+                    element.textContent = t('fileInfoDefault'); // Special case for default fileInfo
+                } else if (element.tagName === 'INPUT' && element.type === 'button') {
+                    element.value = t(key);
+                } else if (element.tagName === 'BUTTON') {
+                    element.textContent = t(key); // For the convert button
+                } else if (element.tagName === 'SPAN' && element.parentElement.htmlFor === 'regFile') {
+                    // Update text only if no file is selected, otherwise it shows the filename
+                    if (!currentFilename) {
+                        element.textContent = t(key);
+                    }
+                }
+                else {
+                    element.innerHTML = t(key); // Use innerHTML to support tags in translations (like <strong>)
+                }
+            });
+
+            // Update the activity status of switcher buttons
+            langSwitcher.querySelectorAll('button').forEach(button => {
+                button.classList.toggle('active', button.dataset.lang === currentLang);
+            });
+        }
+
+        // Update dynamic FileInfo text
+        function updateFileInfo(key, filename = '', filesize = '', error = '') {
+            const replacements = {};
+            if (filename) replacements.filename = filename;
+            if (filesize) replacements.filesize = filesize;
+            if (error) replacements.error = error;
+            fileInfoDiv.textContent = t(key, replacements);
+        }
+
+
+        // --- Helper functions (unchanged logic) ---
+
+        function generateGuid() { /* ... (unchanged) ... */
+            if (crypto && crypto.randomUUID) {
+                return '{' + crypto.randomUUID().toUpperCase() + '}';
+            } else {
+                let d = new Date().getTime();
+                let d2 = (performance && performance.now && (performance.now() * 1000)) || 0;
+                return '{' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    let r = Math.random() * 16;
+                    if (d > 0) {
+                        r = (d + r) % 16 | 0;
+                        d = Math.floor(d / 16);
+                    } else {
+                        r = (d2 + r) % 16 | 0;
+                        d2 = Math.floor(d2 / 16);
+                    }
+                    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16).toUpperCase();
+                }) + '}';
+            }
+        }
+        function getCurrentTimestamp() { /* ... (unchanged) ... */
+            const now = new Date();
+            return now.toISOString().slice(0, 19).replace('T', ' ');
+        }
+        function cleanHexString(hex) { /* ... (unchanged) ... */
+            return hex.replace(/[,\\\s]/g, '');
+        }
+        function hexToString(hex) { /* ... (unchanged, but can be improved with TextDecoder) ... */
+            let str = '';
+            const cleanedHex = cleanHexString(hex);
+            const bytes = [];
+            for (let i = 0; i < cleanedHex.length; i += 2) {
+                const byte = parseInt(cleanedHex.substr(i, 2), 16);
+                if (isNaN(byte)) continue;
+                bytes.push(byte);
+            }
+            // Attempt to decode as UTF-8
+            try {
+                // Use TextDecoder for more reliable UTF-8 decoding
+                return new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes));
+            } catch (e) {
+                // If not UTF-8, try as Latin1 (single-byte)
+                try {
+                    return new TextDecoder('iso-8859-1').decode(new Uint8Array(bytes));
+                } catch (e2) {
+                    console.warn("Could not decode hex string as UTF-8 or Latin1, returning raw:", bytes);
+                    // Return as is if that also fails
+                    str = bytes.map(byte => String.fromCharCode(byte)).join('');
+                    return str;
+                }
+            }
+        }
+        function hexToUtf16LeString(hex) { /* ... (unchanged) ... */
+            const cleanedHex = cleanHexString(hex);
+            const bytes = [];
+            for (let i = 0; i < cleanedHex.length; i += 2) {
+                bytes.push(parseInt(cleanedHex.substr(i, 2), 16));
+            }
+            if (bytes.length === 0) return "";
+            try {
+                const decoder = new TextDecoder('utf-16le', { fatal: true }); // Use TextDecoder API
+                return decoder.decode(new Uint8Array(bytes));
+            } catch (e) {
+                console.error("Failed to decode UTF-16LE:", e, hex);
+                return "[Decoding Error]";
+            }
+        }
+        function hexToMultiSzArray(hex) { /* ... (unchanged) ... */
+            const cleanedHex = cleanHexString(hex);
+            const strings = [];
+            const bytes = [];
+            for (let i = 0; i < cleanedHex.length; i += 2) {
+                const byteVal = parseInt(cleanedHex.substr(i, 2), 16);
+                if (isNaN(byteVal)) { // Handling invalid hex
+                    console.warn("Invalid hex byte found in MULTI_SZ:", cleanedHex.substr(i, 2));
+                    continue;
+                }
+                bytes.push(byteVal);
+            }
+
+            const uint8Array = new Uint8Array(bytes);
+            let startIndex = 0;
+            for (let i = 0; i <= uint8Array.length - 2; i += 2) { // Iterate by 2 bytes (UTF16 code unit)
+                // Look for null terminator (two zero bytes)
+                if (uint8Array[i] === 0 && uint8Array[i + 1] === 0) {
+                    const subArray = uint8Array.slice(startIndex, i);
+                    try {
+                        const decoder = new TextDecoder('utf-16le', { fatal: true });
+                        strings.push(decoder.decode(subArray));
+                    } catch (e) {
+                        console.error("Failed to decode MULTI_SZ segment:", e, subArray);
+                        strings.push("[Decoding Error]");
+                    }
+                    startIndex = i + 2; // Move the start of the next string
+                }
+            }
+            // Add the last string if it didn't end with a null terminator
+            // and if there are remaining bytes
+            if (startIndex < uint8Array.length) {
+                try {
+                    const decoder = new TextDecoder('utf-16le', { fatal: true });
+                    strings.push(decoder.decode(uint8Array.slice(startIndex)));
+                } catch (e) {
+                    console.error("Failed to decode final MULTI_SZ segment:", e, uint8Array.slice(startIndex));
+                    strings.push("[Decoding Error]");
+                }
+            } else if (startIndex === uint8Array.length && uint8Array.length > 0) {
+                // If the last was a null terminator, add an empty string at the end (as required by GPP)
+                // Except when the input string was empty
+                strings.push("");
+            }
+
+            return strings;
+        }
+        function hexQWordReverse(hex) { /* ... (unchanged) ... */
+            const cleanedHex = cleanHexString(hex);
+            let reversed = "";
+            for (let i = 0; i < cleanedHex.length; i += 2) {
+                reversed = cleanedHex.substr(i, 2) + reversed;
+            }
+            return reversed;
+        }
+
+        function parseHexValue(regValue) { /* ... (unchanged, except for error output) ... */
+            regValue = regValue.toLowerCase();
+            let type = "REG_BINARY";
+            let hexData = "";
+            let valuesArray = null;
+
+            try { // Wrap in try...catch to handle hex parsing errors
+                if (regValue.startsWith('hex:')) {
+                    type = "REG_BINARY";
+                    hexData = cleanHexString(regValue.substring(4));
+                } else if (regValue.startsWith('hex(b):') || regValue.startsWith('hex(b)')) {
+                    type = "REG_QWORD";
+                    hexData = cleanHexString(regValue.substring(regValue.indexOf(':') + 1));
+                    // hexData = hexQWordReverse(hexData); // No reverse for now
+                } else if (regValue.startsWith('hex(7):') || regValue.startsWith('hex(7)')) {
+                    type = "REG_MULTI_SZ";
+                    hexData = cleanHexString(regValue.substring(regValue.indexOf(':') + 1));
+                    // Remove double null terminator? No, GPP might expect it. Leave as is.
+                    // if (hexData.endsWith('0000')) {
+                    //     hexData = hexData.slice(0, -4);
+                    // }
+                    valuesArray = hexToMultiSzArray(hexData);
+                    hexData = valuesArray.join('\n'); // GPP doesn't use this, but leave for info
+                } else if (regValue.startsWith('hex(2):') || regValue.startsWith('hex(2)')) {
+                    type = "REG_EXPAND_SZ";
+                    hexData = cleanHexString(regValue.substring(regValue.indexOf(':') + 1));
+                    if (hexData.endsWith('00')) { // Remove null terminator
+                        hexData = hexData.slice(0, -2);
+                    }
+                    hexData = hexToUtf16LeString(hexData);
+                } else {
+                    const match = regValue.match(/^hex\((\d+)\):(.*)/);
+                    if (match) {
+                        type = `REG_BINARY`;
+                        hexData = cleanHexString(match[2]);
+                    } else {
+                        console.error(t('parsingErrorHexFormat', { value: regValue }));
+                        hexData = ""; // Return empty value
+                    }
+                }
+            } catch (e) {
+                console.error("Error parsing hex value:", e, regValue);
+                hexData = "[Parsing Error]"; // Indicate an error
+                type = "REG_SZ"; // Return as string so XML doesn't break
+                valuesArray = null;
+            }
+            return { type: type, value: hexData, values: valuesArray };
+        }
+
+
+        // Display message (now uses t())
+        function showStatus(key, type = 'danger', replacements = {}) {
+            const message = t(key, replacements);
+            statusArea.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
+        }
+
+        function clearStatus() {
+            statusArea.innerHTML = '';
+        }
+
+        function updateOptionsState() { /* ... (unchanged) ... */
+            const isRemovePolicy = removePolicyCheckbox.checked;
+            const actionC = document.getElementById('actionC');
+            const actionU = document.getElementById('actionU');
+            const actionD = document.getElementById('actionD');
+            const actionR = document.getElementById('actionR');
+
+            actionC.disabled = isRemovePolicy;
+            actionU.disabled = isRemovePolicy;
+            actionD.disabled = isRemovePolicy;
+            applyOnceCheckbox.disabled = isRemovePolicy;
+
+            if (isRemovePolicy) {
+                actionR.checked = true;
+                applyOnceCheckbox.checked = false;
+            } else {
+                // Check that at least one option is selected if unlocked
+                let oneChecked = false;
+                for (let i = 0; i < actionRadios.length; i++) {
+                    if (actionRadios[i].checked) {
+                        oneChecked = true;
+                        break;
+                    }
+                }
+                if (!oneChecked) {
+                    actionU.checked = true; // Default to Update if nothing is selected
+                }
+            }
+        }
+
+        // --- Main conversion function (unchanged logic, except for error output) ---
+        function generateGppXml(regContent, options) {
+            // ... (XML document and root element creation unchanged) ...
+            const parser = new DOMParser();
+            const serializer = new XMLSerializer();
+            const xmlDoc = document.implementation.createDocument(null, "Collection", null);
+            const rootElement = xmlDoc.documentElement;
+            rootElement.setAttribute("clsid", "{53B533F5-224C-47e3-B01B-CA3B3F3FF4BF}");
+            rootElement.setAttribute("name", options.collectionName);
+            rootElement.appendChild(xmlDoc.createComment(' Made with Reg2GPP (JS Version) '));
+
+            try { // Wrap the entire parsing in try-catch
+                const lines = regContent.split(/\r?\n/);
+                let currentPath = [];
+                let currentCollectionNode = rootElement;
+                let piece = "";
+                let lineNumber = 0; // For debugging
+
+                lines.forEach(rawLine => {
+                    lineNumber++;
+                    let line = rawLine.trim();
+                    // ... (Skipping empty lines, comments, header unchanged) ...
+                    if (!line || line.startsWith(';') || line.toLowerCase() === "windows registry editor version 5.00") {
+                        return;
+                    }
+
+                    // Handling line breaks
+                    if (piece) {
+                        line = piece + line;
+                        piece = "";
+                    }
+                    if (line.endsWith(',\\')) {
+                        piece = line.slice(0, -2);
+                        return;
+                    }
+
+
+                    // 1. Handling keys [HKEY...] or [-HKEY...]
+                    // ... (Collection creation/search logic unchanged) ...
+                    if (line.startsWith('[') && line.endsWith(']')) {
+                        const isDeleteKey = line.startsWith('[-');
+                        const fullPath = line.substring(isDeleteKey ? 2 : 1, line.length - 1);
+                        currentPath = fullPath.split('\\');
+                        currentCollectionNode = rootElement;
+
+                        currentPath.forEach(keyPart => {
+                            if (!keyPart) return;
+                            let foundNode = null;
+                            // Use XPath for searching, might be more efficient on large XML
+                            // const xpathResult = xmlDoc.evaluate('./Collection[@name="' + keyPart.replace(/"/g,'"') + '"]', currentCollectionNode, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+                            // foundNode = xpathResult.singleNodeValue;
+                            // Simple iteration for compatibility without XPath:
+                            const childCollections = currentCollectionNode.childNodes;
+                            for (let i = 0; i < childCollections.length; i++) {
+                                if (childCollections[i].nodeType === Node.ELEMENT_NODE &&
+                                    childCollections[i].tagName === 'Collection' &&
+                                    childCollections[i].getAttribute('name') === keyPart) {
+                                    foundNode = childCollections[i];
+                                    break;
+                                }
+                            }
+
+                            if (!foundNode) {
+                                const newCollection = xmlDoc.createElement('Collection');
+                                newCollection.setAttribute('clsid', '{53B533F5-224C-47e3-B01B-CA3B3F3FF4BF}');
+                                newCollection.setAttribute('name', keyPart);
+                                currentCollectionNode.appendChild(newCollection);
+                                currentCollectionNode = newCollection;
+                            } else {
+                                currentCollectionNode = foundNode;
+                            }
+                        });
+
+                        // If it's a delete key [-HKEY...]
+                        if (isDeleteKey && currentPath.length > 0) {
+                            // ... (Creating Registry element for key deletion unchanged) ...
+                            const hive = currentPath[0];
+                            const keyPath = currentPath.slice(1).join('\\');
+                            const keyName = currentPath[currentPath.length - 1];
+
+                            const regNode = xmlDoc.createElement('Registry');
+                            regNode.setAttribute('clsid', '{9CD4B2F4-923D-47f5-A062-E897DD1DAD50}');
+                            regNode.setAttribute('name', keyName);
+                            regNode.setAttribute('status', keyName);
+                            regNode.setAttribute('image', '3'); // Image 3 corresponds to Update action, Delete action doesn't change image number based on type
+                            regNode.setAttribute('changed', getCurrentTimestamp());
+                            regNode.setAttribute('uid', generateGuid());
+                            if (options.stoponError) regNode.setAttribute('bypassErrors', '0');
+                            if (options.userContext) regNode.setAttribute('userContext', '1');
+                            // removePolicy and applyOnce are not applicable to Delete actions in the UI
+
+                            const propsNode = xmlDoc.createElement('Properties');
+                            propsNode.setAttribute('action', 'D'); // Key deletion uses Action=D
+                            propsNode.setAttribute('displayDecimal', '0');
+                            propsNode.setAttribute('default', '0'); // Not relevant for key deletion
+                            propsNode.setAttribute('hive', hive);
+                            propsNode.setAttribute('key', keyPath);
+                            propsNode.setAttribute('name', ''); // No value name for key deletion
+                            propsNode.setAttribute('type', 'REG_SZ'); // Type is irrelevant for key deletion, REG_SZ is a safe default
+                            propsNode.setAttribute('value', ''); // Value is irrelevant for key deletion
+
+                            regNode.appendChild(propsNode);
+                            regNode.appendChild(xmlDoc.createElement('Filters')); // Empty Filters node required
+                            // Place the delete node INSIDE the parent collection representing the path
+                            // Find the collection node corresponding to the parent path
+                            let parentCollectionNode = rootElement;
+                            for (let i = 0; i < currentPath.length -1; i++){
+                                const keyPart = currentPath[i];
+                                let found = false;
+                                const children = parentCollectionNode.childNodes;
+                                for(let j=0; j < children.length; j++) {
+                                    if (children[j].nodeType === Node.ELEMENT_NODE &&
+                                        children[j].tagName === 'Collection' &&
+                                        children[j].getAttribute('name') === keyPart) {
+                                        parentCollectionNode = children[j];
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    console.warn("Could not find parent collection for key deletion:", currentPath.slice(0, -1).join('\\'));
+                                    parentCollectionNode = currentCollectionNode; // fallback to deepest created node
+                                    break;
+                                }
+                            }
+                            parentCollectionNode.appendChild(regNode); // Add delete node to the parent collection
+                            // currentCollectionNode remains the same (the key path itself)
+                        }
+                    }
+                    // 2. Handling values "@=..." or "\"ValueName\"=..."
+                    else if (currentPath.length > 0 && (line.startsWith('"') || line.startsWith('@=') || line.startsWith('@ =') )) { // Allow space after @
+                        const hive = currentPath[0];
+                        const keyPath = currentPath.slice(1).join('\\');
+                        let valueName = "";
+                        let regValueRaw = "";
+                        let isDefaultValue = false;
+                        let isDeleteValue = false;
+
+                        if (line.startsWith('@=')) {
+                            valueName = "(Default)";
+                            regValueRaw = line.substring(2).trim();
+                            isDefaultValue = true;
+                        } else if (line.startsWith('@ =')) { // Handle space variation
+                             valueName = "(Default)";
+                            regValueRaw = line.substring(3).trim();
+                            isDefaultValue = true;
+                        } else {
+                            // Improved regex to handle quotes within the value name and deletion syntax ("ValueName"=-)
+                            const match = line.match(/^"((?:[^"\\]|\\.)*)"=([\s\S]*)/); // Use [\s\S]* to capture multiline hex continuation
+                            if (match) {
+                                // Decode escaped characters in the value name (\", \\)
+                                valueName = match[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                                regValueRaw = match[2].trim();
+                                if (regValueRaw === '-') { // Check for value deletion syntax "ValueName"=-
+                                    isDeleteValue = true;
+                                    regValueRaw = ""; // No actual value needed for deletion
+                                }
+                            } else {
+                                console.warn(t('parsingErrorValueLine', { line: line }));
+                                return; // Skip incorrect value line
+                            }
+                        }
+
+                        // Determine type and value (only if not deleting)
+                        let valueType = "REG_SZ"; // Default type
+                        let valueData = "";
+                        let multiSzValues = null;
+
+                        if (isDeleteValue) {
+                            valueType = 'REG_SZ'; // Type irrelevant for value deletion
+                            valueData = '';
+                        } else if (regValueRaw.toLowerCase().startsWith('dword:')) {
+                            // ... (dword unchanged) ...
+                            valueType = "REG_DWORD";
+                            const hexDword = regValueRaw.substring(6);
+                            valueData = parseInt(hexDword, 16).toString(); // Store as a decimal number in a string
+                        } else if (regValueRaw.toLowerCase().startsWith('hex')) {
+                            // ... (hex unchanged) ...
+                            const hexResult = parseHexValue(regValueRaw);
+                            valueType = hexResult.type;
+                            valueData = hexResult.value;
+                            multiSzValues = hexResult.values;
+                        } else if (regValueRaw.startsWith('"') && regValueRaw.endsWith('"')) {
+                            // ... (REG_SZ unchanged) ...
+                            valueType = "REG_SZ";
+                            valueData = regValueRaw.substring(1, regValueRaw.length - 1);
+                            valueData = valueData.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                        } else {
+                            // Non-standard format - try to interpret as REG_SZ
+                            console.warn(t('parsingWarningUnrecognizedValue', { value: regValueRaw, line: line }));
+                            valueType = "REG_SZ";
+                            valueData = regValueRaw; // Treat as literal string
+                        }
+
+                        // Determine action and image
+                        const action = isDeleteValue ? 'D' : (options.removePolicy ? 'R' : options.action);
+                        let image = 0;
+                        switch (action) {
+                            case 'C': image = 1; break;
+                            case 'R': image = 2; break;
+                            case 'U': image = 3; break;
+                            case 'D': image = 4; break;
+                        }
+                        // Adjust image based on value type (even for delete, the UI seems to show the type icon)
+                        if (valueType === 'REG_SZ' || valueType === 'REG_EXPAND_SZ' || valueType === 'REG_MULTI_SZ') {
+                            image += 4;
+                        } else if (valueType === 'REG_DWORD' || valueType === 'REG_QWORD') {
+                            image += 9;
+                        } else if (valueType === 'REG_BINARY') {
+                            image += 14;
+                        } else {
+                            image += 4; // Default to string-like icon
+                        }
+
+
+                        // ... (Creating Registry and Properties elements unchanged) ...
+                        const regNode = xmlDoc.createElement('Registry');
+                        regNode.setAttribute('clsid', '{9CD4B2F4-923D-47f5-A062-E897DD1DAD50}');
+                        regNode.setAttribute('name', isDefaultValue ? currentPath[currentPath.length - 1] || options.collectionName : valueName); // Fallback for HKEY_ROOT level default value
+                        regNode.setAttribute('status', valueName);
+                        regNode.setAttribute('image', image.toString());
+                        regNode.setAttribute('changed', getCurrentTimestamp());
+                        regNode.setAttribute('uid', generateGuid());
+                        if (options.stoponError) regNode.setAttribute('bypassErrors', '0'); // bypassErrors=1 means ignore errors
+                        if (options.userContext) regNode.setAttribute('userContext', '1');
+                        if (options.removePolicy && !isDeleteValue) regNode.setAttribute('removePolicy', '1'); // removePolicy only applies to Create/Update/Replace
+
+                        const propsNode = xmlDoc.createElement('Properties');
+                        propsNode.setAttribute('action', action);
+                        propsNode.setAttribute('displayDecimal', '0');
+                        propsNode.setAttribute('default', isDefaultValue ? '1' : '0');
+                        propsNode.setAttribute('hive', hive);
+                        propsNode.setAttribute('key', keyPath);
+                        propsNode.setAttribute('name', valueName);
+                        propsNode.setAttribute('type', valueType);
+                        propsNode.setAttribute('value', valueData === "[Parsing Error]" || valueData === "[Decoding Error]" ? "" : valueData); // Don't write errors to XML
+
+                        // Add <Values> for REG_MULTI_SZ
+                        if (valueType === 'REG_MULTI_SZ' && multiSzValues) {
+                            const valuesNode = xmlDoc.createElement('Values');
+                            multiSzValues.forEach(val => {
+                                if (val !== "[Decoding Error]") { // Don't add erroneous values
+                                    const valueElement = xmlDoc.createElement('Value');
+                                    valueElement.textContent = val; // textContent handles escaping itself
+                                    valuesNode.appendChild(valueElement);
+                                }
+                            });
+                            // Add an empty Value element if the array is empty (GPP requires this)
+                            if (valuesNode.childElementCount === 0) {
+                                valuesNode.appendChild(xmlDoc.createElement('Value'));
+                            }
+                            propsNode.appendChild(valuesNode);
+                        }
+
+                        // ... (Creating Filters unchanged) ...
+                        const filtersNode = xmlDoc.createElement('Filters');
+                        if (options.applyOnce && !options.removePolicy && !isDeleteValue) { // applyOnce doesn't apply to Delete or when removePolicy is on
+                            const filterRunOnce = xmlDoc.createElement('FilterRunOnce');
+                            filterRunOnce.setAttribute('hidden', '1');
+                            filterRunOnce.setAttribute('not', '0');
+                            filterRunOnce.setAttribute('bool', 'AND');
+                            filterRunOnce.setAttribute('id', generateGuid());
+                            filtersNode.appendChild(filterRunOnce);
+                        }
+
+                        regNode.appendChild(propsNode);
+                        regNode.appendChild(filtersNode);
+                        currentCollectionNode.appendChild(regNode);
+
+                    } else {
+                        // Unrecognized line
+                        console.warn(t('parsingWarningUnrecognizedLine', { line: line }));
+                    }
+                }); // end forEach line
+
+                // 3. Adding empty keys (left commented out)
+                // addEmptyKeyPlaceholders(rootElement, xmlDoc, options);
+
+
+                // Serialize XML to string
+                const xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(xmlDoc);
+                return xmlString;
+
+            } catch (error) { // Catch parsing/XML generation errors
+                console.error("Error during XML generation:", error);
+                showStatus('statusErrorGeneric', 'danger'); // Use key for message
+                return null;
+            }
+        }
+
+        // --- File download function (unchanged) ---
+        function downloadXml(xmlString, filename) { /* ... (unchanged) ... */
+            const blob = new Blob([xmlString], { type: 'text/xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- Event handlers ---
+
+        // File selection handler (uses updateFileInfo and t() keys)
+        fileInput.addEventListener('change', (event) => {
+            clearStatus();
+            optionsSection.classList.add('d-none');
+            regFileContent = null;
+            const file = event.target.files[0];
+
+            if (!file) {
+                updateFileInfo('fileInfoDefault');
+                fileInputLabelSpan.textContent = t('selectFileLabel');
+                currentFilename = ''; // Reset filename
+                return;
+            }
+
+            currentFilename = file.name;
+            fileInputLabelSpan.textContent = currentFilename; // Show filename in the button
+
+            if (!currentFilename.toLowerCase().endsWith('.reg')) {
+                showStatus('statusWarningSelectReg', 'warning');
+                updateFileInfo('fileInfoWrongFile', currentFilename);
+                event.target.value = null;
+                fileInputLabelSpan.textContent = t('selectFileLabel');
+                currentFilename = '';
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                regFileContent = e.target.result;
+                // Check for BOM and header more robustly
+                let contentToCheck = regFileContent;
+                if (contentToCheck.charCodeAt(0) === 0xFEFF) { // Check for UTF-8 BOM
+                    contentToCheck = contentToCheck.substring(1);
+                }
+                const firstLines = contentToCheck.split('\n', 5); // Check first few lines
+                let headerFound = false;
+                for (const line of firstLines) {
+                    if (line.trim().toLowerCase() === "windows registry editor version 5.00") {
+                        headerFound = true;
+                        break;
+                    }
+                }
+
+                if (!headerFound) {
+                    showStatus('statusErrorInvalidReg', 'danger');
+                    updateFileInfo('fileInfoErrorHeader', currentFilename);
+                    regFileContent = null;
+                    event.target.value = null;
+                    fileInputLabelSpan.textContent = t('selectFileLabel');
+                    currentFilename = '';
+                    return;
+                }
+
+
+                const fileSizeKb = (file.size / 1024).toFixed(2);
+                updateFileInfo('fileInfoSelected', currentFilename, fileSizeKb);
+                collectionNameInput.value = currentFilename.replace(/\.reg$/i, '');
+                optionsSection.classList.remove('d-none');
+                updateOptionsState();
+            };
+
+            reader.onerror = (e) => {
+                console.error("File reading error:", e);
+                showStatus('statusErrorReadFile', 'danger', { error: e.target.error });
+                updateFileInfo('fileInfoErrorRead', currentFilename);
+                regFileContent = null;
+                event.target.value = null;
+                fileInputLabelSpan.textContent = t('selectFileLabel');
+                currentFilename = '';
+            };
+
+            reader.readAsText(file); // Reads as default encoding, usually UTF-8
+        });
+
+        // "Remove item..." checkbox change handler
+        removePolicyCheckbox.addEventListener('change', updateOptionsState);
+
+        // "Convert" button click handler (uses t() keys)
+        convertButton.addEventListener('click', () => {
+            clearStatus();
+
+            if (!regFileContent) {
+                showStatus('statusErrorChooseFile', 'warning');
+                return;
+            }
+
+            if (!collectionNameInput.value.trim()) {
+                showStatus('statusErrorCollectionName', 'warning');
+                collectionNameInput.focus();
+                return;
+            }
+
+            const selectedAction = optionsForm.elements['action'].value;
+            const options = {
+                collectionName: collectionNameInput.value.trim(),
+                action: selectedAction,
+                stoponError: !document.getElementById('stoponError').checked, // Note: GPP uses bypassErrors=0 for stop, 1 for continue. Checkbox means "Stop", so we invert.
+                userContext: document.getElementById('userContext').checked,
+                removePolicy: removePolicyCheckbox.checked,
+                applyOnce: applyOnceCheckbox.checked
+            };
+
+            showStatus('statusGenerating', 'info');
+
+            // Use setTimeout to allow UI update before potentially long processing
+            setTimeout(() => {
+                const xmlResult = generateGppXml(regFileContent, options);
+
+                if (xmlResult) {
+                    showStatus('statusGenerated', 'success');
+                    const downloadFilename = options.collectionName.replace(/[\/\\?%*:|"<>]/g, '_') + '.xml'; // Replace invalid characters
+                    downloadXml(xmlResult, downloadFilename);
+                } else {
+                    // Error message already shown in generateGppXml's catch block
+                    // showStatus('statusErrorGeneric', 'danger'); // This message is now shown in the generateGppXml catch block
+                }
+            }, 10); // Small delay
+
+        });
+
+        // Language switch handler
+        langSwitcher.addEventListener('click', (event) => {
+            const targetButton = event.target.closest('button[data-lang]');
+            if (targetButton && targetButton.dataset.lang !== currentLang) {
+                currentLang = targetButton.dataset.lang;
+                localStorage.setItem('reg2gppLang', currentLang); // Save the choice
+                updateTexts(); // Update text on the page
+                // Reset the file label if no file is selected
+                if (!currentFilename) {
+                    fileInputLabelSpan.textContent = t('selectFileLabel');
+                }
+                // Re-display status messages in the new language if any exist
+                const statusDiv = statusArea.querySelector('.alert');
+                if(statusDiv) {
+                    // Find the key based on current message (this is fragile)
+                    // It's better to store the key and replacements when showing status
+                    // For now, just clear status on language change
+                     clearStatus();
+                }
+                 // Re-display file info in the new language
+                if (currentFilename && regFileContent) {
+                     const fileSizeKb = (fileInput.files[0].size / 1024).toFixed(2);
+                     updateFileInfo('fileInfoSelected', currentFilename, fileSizeKb);
+                } else if (currentFilename) {
+                     updateFileInfo('fileInfoErrorHeader', currentFilename); // Or other error states
+                } else {
+                    updateFileInfo('fileInfoDefault');
+                }
+
+            }
+        });
+
+
+        // --- Initialization on page load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTexts(); // Set text according to saved or default language
+            updateOptionsState(); // Set initial state of options
+            // Reset file label on reload
+            if (!fileInput.value) {
+                fileInputLabelSpan.textContent = t('selectFileLabel');
+                updateFileInfo('fileInfoDefault'); // Set default text
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>
