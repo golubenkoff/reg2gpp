@@ -1,3 +1,5 @@
+![Reg2Gpp](./reg2gpp-gb.png)
+
 # Reg2GPP - Client-Side .reg to GPP XML Converter
 
 This tool converts Windows registry files (`.reg`) into the XML format used by Group Policy Preferences (GPP). This allows administrators to easily import registry settings into Active Directory Group Policies, saving significant time and reducing errors compared to manual configuration.
