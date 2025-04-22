@@ -21,7 +21,7 @@ This is a **client-side JavaScript version** inspired by the original PHP Reg2GP
 
 ## How to Use
 
-1.  **Open the File:** Download the `reg2gpp_converter.html` file and open it in your web browser (like Chrome, Firefox, Edge).
+1.  **Open the File:** Download the `reg2gpp.html` file and open it in your web browser (like Chrome, Firefox, Edge).
 2.  **Select `.reg` File:** Click the "Choose a file..." (or "Виберіть файл...") button and select the `.reg` file you want to convert.
 3.  **Configure Options:** If the file is valid, the "Conversion Options" section will appear.
     *   Enter a descriptive **Collection Name**.
