@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://golubenkoff.github.io/sitemap.xml
+Sitemap: https://golubenkoff.github.io/reg2gpp/sitemap.xml
